@@ -1,0 +1,14 @@
+"""
+The sequence is first split into non-overlapped small windows. 
+Each contains input_size numbers and each is considered as one independent input element.
+Then any num_steps consecutive input elements are grouped into one training input,
+forming an 'un-rolled' version of RNN for training on Tensorfow.
+The corresponding label is the input element right after them.
+"""
+
+seq = [np.array(seq[i * self.input_size: (i + 1) * self.input_size]) 
+       for i in range(len(seq) // self.input_size)]
+
+# Split into groups of 'num_steps'
+X = np.array([seq[i: i + self.num_steps] for i in range(len(seq) - self.num_steps)])
+y = np.array([seq[i + self.num_steps] for i in range(len(seq) - self.num_steps)])
