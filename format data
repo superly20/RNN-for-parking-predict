@@ -10,5 +10,6 @@ seq = [np.array(seq[i * self.input_size: (i + 1) * self.input_size])
        for i in range(len(seq) // self.input_size)]
 
 # Split into groups of 'num_steps'
+# The items in seq are vector too, the code below can pick num_steps of the vectors up.
 X = np.array([seq[i: i + self.num_steps] for i in range(len(seq) - self.num_steps)])
 y = np.array([seq[i + self.num_steps] for i in range(len(seq) - self.num_steps)])
