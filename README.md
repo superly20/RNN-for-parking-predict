@@ -7,9 +7,9 @@
 
 参数定义
 
-lstm_size：在一个LSTM训练里的cell的个数
+lstm_size：在一个LSTM训练里的输入输出的个数
 
-num_layers：一个cell里隐藏层的个数
+num_layers：一个输入输出中间包含cell的个数
 
 keep_prob：用于dropout.每批数据输入时神经网络中的每个单元会以1-keep_prob的概率不工作，可以防止过拟合
 
