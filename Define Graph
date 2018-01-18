@@ -1,0 +1,66 @@
+#(1) Initialize a new graph first.
+
+import tensorflow as tf
+tf.reset_default_graph()
+lstm_graph = tf.Graph()
+
+
+#(2) How the graph works should be defined within its scope.
+
+with lstm_graph.as_default():
+
+
+#(3) Define the data required for computation.(inputs,targets,learning_rate)
+#    参数前加config是因为要从config.py中调用
+#    神经网络所处理的单位全部都是向量
+#    加入num_steps这个维度是为了可以实现一次训练多个样本，求出平均梯度来更新权重(Mini-batch gradient descent)
+
+inputs = tf.placeholder(tf.float32, [None, config.num_steps, config.input_size]) # num_steps个input_size的的向量，矩阵格式为num_steps行，input_size列
+targets = tf.placeholder(tf.float32, [None, config.input_size]) # input_size的向量
+learning_rate = tf.placeholder(tf.float32, None) # 一个浮点数
+
+
+#(4) returns one LSTMCell with or without dropout operation.
+#    dropout,就是指网络中每个单元在每次有数据流入时以一定的概率(keep prob)正常工作，否则输出0值。
+#    这是是一种有效的正则化方法，可以有效防止过拟合。
+
+def _create_one_cell():
+    return tf.contrib.rnn.LSTMCell(config.lstm_size, state_is_tuple=True)
+    if config.keep_prob < 1.0:
+        return tf.contrib.rnn.DropoutWrapper(lstm_cell, output_keep_prob=config.keep_prob)
+
+
+#(5) Stack the cells into multiple layers if needed.
+
+cell = tf.contrib.rnn.MultiRNNCell([_create_one_cell() for _ in range(config.num_layers)], state_is_tuple=True) if config.num_layers > 1 else _create_one_cell()
+
+
+#(6) tf.nn.dynamic_rnn constructs a RNN specified by cell (RNNCell).
+#    It returns a pair of (model outputs, state).
+#    val的格式为(batch_size, num_steps, lstm_size)，是一个三维张量，???
+
+val, _ = tf.nn.dynamic_rnn(cell, inputs, dtype=tf.float32)
+
+
+#(7) tf.transpose converts the outputs from the dimension
+#    (batch_size, num_steps, lstm_size) to (num_steps, batch_size, lstm_size).
+#    Then the last output is picked.
+#    last.get_shape() = (batch_size, lstm_size)
+
+val = tf.transpose(val, [1, 0, 2])
+last = tf.gather(val, int(val.get_shape()[0]) - 1, name="last_lstm_output")
+
+
+#(8) Define weights and biases between the hidden and output layers.
+
+weight = tf.Variable(tf.truncated_normal([config.lstm_size, config.input_size])) # lstm_size个input_size的向量，矩阵格式为lstm_size行，input_size列
+bias = tf.Variable(tf.constant(0.1, shape=[config.input_size])) # input_size的向量
+prediction = tf.matmul(last, weight) + bias # batch_size个input_size的向量，矩阵格式为batch_size行，input_size列
+
+
+#(9) We use mean square error as the loss metric and the RMSPropOptimizer algorithm for gradient descent optimization.
+#    均方误差是反映估计量与被估计量之间差异程度的一种度量。设t是根据子样确定的总体参数θ的一个估计量，(θ-t)2的数学期望，称为估计量t的均方误差。
+
+loss = tf.reduce_mean(tf.square(prediction - targets))
+optimizer = tf.train.RMSPropOptimizer(learning_rate)
+minimize = optimizer.minimize(loss)
