@@ -1,0 +1,29 @@
+#(1) To start training the graph with real data, we need to start a tf.session first.
+
+with tf.Session(graph=lstm_graph) as sess:
+
+
+#(2) Initialize the variables as defined.
+
+    tf.global_variables_initializer().run()
+    
+    
+#(0) The learning rates for training epochs should have been precomputed beforehand.
+#    The index refers to the epoch index.
+
+learning_rates_to_use = [config.init_learning_rate * (config.learning_rate_decay ** max(float(i + 1 - config.init_epoch), 0.0)) for i in range(config.max_epoch)]
+
+
+#(3) Each loop below completes one epoch training.
+
+for epoch_step in range(config.max_epoch):
+    current_lr = learning_rates_to_use[epoch_step]
+    for batch_X, batch_y in stock_dataset.generate_one_epoch(config.batch_size):
+        train_data_feed = {inputs: batch_X, targets: batch_y, learning_rate: current_lr}
+        train_loss, _ = sess.run([loss, minimize], train_data_feed)
+
+
+#(4) Don’t forget to save your trained model at the end.
+
+saver = tf.train.Saver()
+saver.save(sess, "your_awesome_model_path_and_name", global_step=max_epoch_step)
