@@ -10,6 +10,7 @@ with tf.Session(graph=lstm_graph) as sess:
     
 #(0) The learning rates for training epochs should have been precomputed beforehand.
 #    The index refers to the epoch index.
+#    在init_epoch个epoch之前学习率就是init_learning_rate；init_epoch个epoch之后学习率是init_learning_rate乘learning_rate_decay的n乘方。
 
 learning_rates_to_use = [config.init_learning_rate * (config.learning_rate_decay ** max(float(i + 1 - config.init_epoch), 0.0)) for i in range(config.max_epoch)]
 
