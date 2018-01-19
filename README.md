@@ -13,7 +13,7 @@ num_layers：一个输入输出中间包含cell的个数
 
 keep_prob：用于dropout.每批数据输入时神经网络中的每个单元会以1-keep_prob的概率不工作，可以防止过拟合
 
-init_learning_rate：学习速率,在循环次数超过init_epoch以后会逐渐降低，init_learning_rate*learning_rate_decay
+init_learning_rate：开始时的学习速率,在循环次数超过init_epoch以后会逐渐降低
 
 learning_rate_decay：学习速率衰减（epoch>init_epoch时,decay逐渐减小）
 
